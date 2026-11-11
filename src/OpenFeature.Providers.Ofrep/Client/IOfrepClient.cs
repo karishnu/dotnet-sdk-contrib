@@ -8,6 +8,8 @@ namespace OpenFeature.Providers.Ofrep.Client;
 /// </summary>
 internal interface IOfrepClient : IDisposable
 {
+    event Action? ConfigurationChanged;
+
     /// <summary>
     /// Evaluates a flag value using the OFREP API.
     /// </summary>

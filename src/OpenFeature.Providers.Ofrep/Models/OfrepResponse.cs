@@ -60,4 +60,7 @@ internal class OfrepResponse<T>
     /// </summary>
     [JsonPropertyName("metadata")]
     public Dictionary<string, object>? Metadata { get; set; }
+
+    [JsonPropertyName("eventStreams")]
+    public List<OfrepEventStream>? EventStreams { get; set; }
 }

@@ -81,6 +81,7 @@ public sealed class OfrepProvider : FeatureProvider, IDisposable
         }
 
         this._client = new OfrepClient(configuration, timeProvider: timeProvider);
+        this._client.ConfigurationChanged += this.OnConfigurationChanged;
     }
 
     /// <summary>
@@ -90,6 +91,7 @@ public sealed class OfrepProvider : FeatureProvider, IDisposable
     internal OfrepProvider(IOfrepClient client)
     {
         this._client = client ?? throw new ArgumentNullException(nameof(client));
+        this._client.ConfigurationChanged += this.OnConfigurationChanged;
     }
 
     /// <inheritdoc/>
@@ -113,12 +115,20 @@ public sealed class OfrepProvider : FeatureProvider, IDisposable
             return;
         }
 
+        this._client.ConfigurationChanged -= this.OnConfigurationChanged;
         this._client.Dispose();
         this._disposed = true;
 
         // ReSharper disable once GCSuppressFinalizeForTypeWithoutDestructor
         GC.SuppressFinalize(this);
     }
+
+    private void OnConfigurationChanged() =>
+        this.EventChannel.Writer.TryWrite(new ProviderEventPayload
+        {
+            Type = ProviderEventTypes.ProviderConfigurationChanged,
+            ProviderName = Name
+        });
 
     /// <inheritdoc/>
     public override Task<ResolutionDetails<bool>> ResolveBooleanValueAsync(
