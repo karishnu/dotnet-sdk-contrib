@@ -66,13 +66,15 @@ public static class FeatureBuilderExtensions
             {
                 ofrepOptions.Headers[header.Key] = header.Value;
             }
+            ofrepOptions.InactivityDelay = opts.InactivityDelay;
         }
         else
         {
             ofrepOptions = new OfrepOptions(opts.BaseUrl)
             {
                 Timeout = opts.Timeout,
-                Headers = opts.Headers
+                Headers = opts.Headers,
+                InactivityDelay = opts.InactivityDelay
             };
         }
 
@@ -112,7 +114,7 @@ public static class FeatureBuilderExtensions
 
         // Build OfrepClient using provided HttpClient and wire into OfrepProvider
         var timeProvider = sp.GetService<TimeProvider>();
-        var ofrepClient = new OfrepClient(httpClient, logger, timeProvider);
+        var ofrepClient = new OfrepClient(httpClient, logger, timeProvider, ofrepOptions.InactivityDelay);
         return new OfrepProvider(ofrepClient);
     }
 }

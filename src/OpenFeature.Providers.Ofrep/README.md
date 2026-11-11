@@ -7,6 +7,7 @@ evaluate feature flags through a REST API that follows the OFREP specification.
 
 -   Full implementation of the OpenFeature REST Evaluation Protocol
 -   Support for all standard flag types (boolean, string, integer, double, object)
+-   Server-Sent Events (SSE) change notifications when an OFREP response includes `eventStreams`
 
 ## Installation
 
@@ -86,6 +87,11 @@ The `OfrepOptions` class supports the following options:
 -   `BaseUrl` (required): The base URL for the OFREP API endpoint
 -   `Timeout` (optional): HTTP client timeout. The default value is 10 seconds.
 -   `Headers` (optional): Additional HTTP headers to include in requests
+-   `InactivityDelay` (optional): Override the SSE inactivity delay. Without an override, the provider uses `inactivityDelaySec` from the response or 120 seconds.
+
+When a successful single-flag evaluation response includes an SSE entry in `eventStreams`, the provider connects to its `url` or `endpoint`. A `refetchEvaluation` message emits `ProviderConfigurationChanged`; the provider does not cache or automatically re-evaluate individual flags. It reconnects after a connection failure, closes inactive connections, and reconnects after the next evaluation. Call `ShutdownAsync` or `Dispose` to close active streams.
+
+If you configure request headers, the provider only connects to SSE endpoints on the same origin as the OFREP server so it doesn't forward those headers to another origin. Without configured headers, SSE endpoints can use a different origin.
 
 ## Environment Variable Configuration
 

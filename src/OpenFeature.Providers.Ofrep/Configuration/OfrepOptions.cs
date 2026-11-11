@@ -37,6 +37,11 @@ public partial class OfrepOptions
     internal static TimeSpan DefaultTimeout => TimeSpan.FromSeconds(10);
 
     /// <summary>
+    /// Gets or sets the inactivity delay for event streams. Overrides the delay in evaluation responses.
+    /// </summary>
+    public TimeSpan? InactivityDelay { get; set; }
+
+    /// <summary>
     /// Gets or sets additional HTTP headers to include in requests.
     /// </summary>
     public Dictionary<string, string> Headers { get; set; } = new();

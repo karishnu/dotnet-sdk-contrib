@@ -25,7 +25,9 @@ internal sealed partial class OfrepClient : IOfrepClient
     private DateTimeOffset? _retryAfterDate;
     private readonly ILogger _logger;
     private readonly TimeProvider _timeProvider;
+    private readonly OfrepEventStreamManager _eventStreams;
     private bool _disposed;
+    public event Action? ConfigurationChanged;
 
     /// <summary>
     /// Creates a new instance of <see cref="OfrepClient"/>.
@@ -44,7 +46,8 @@ internal sealed partial class OfrepClient : IOfrepClient
     /// <param name="httpClient">The HttpClient to use for requests. Caller may provide one from IHttpClientFactory.</param>
     /// <param name="logger">The logger for the client.</param>
     /// <param name="timeProvider">The time provider for time-related operations. Defaults to TimeProvider.System.</param>
-    internal OfrepClient(HttpClient httpClient, ILogger? logger = null, TimeProvider? timeProvider = null)
+    /// <param name="inactivityDelay">Optional event stream inactivity delay override.</param>
+    internal OfrepClient(HttpClient httpClient, ILogger? logger = null, TimeProvider? timeProvider = null, TimeSpan? inactivityDelay = null)
     {
 #if NET8_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(httpClient);
@@ -59,6 +62,7 @@ internal sealed partial class OfrepClient : IOfrepClient
         this._httpClient = httpClient;
         EnsureBaseAddressTrailingSlash(this._httpClient);
         this._timeProvider = timeProvider ?? TimeProvider.System;
+        this._eventStreams = new OfrepEventStreamManager(this._httpClient, this._timeProvider, () => this.ConfigurationChanged?.Invoke(), this._logger, inactivityDelay);
     }
 
     /// <summary>
@@ -99,6 +103,7 @@ internal sealed partial class OfrepClient : IOfrepClient
         }
 
         this._timeProvider = timeProvider ?? TimeProvider.System;
+        this._eventStreams = new OfrepEventStreamManager(this._httpClient, this._timeProvider, () => this.ConfigurationChanged?.Invoke(), this._logger, configuration.InactivityDelay);
     }
 
     /// <summary>
@@ -345,6 +350,7 @@ internal sealed partial class OfrepClient : IOfrepClient
             evaluationResponse.Reason ??= Reason.Default;
         }
 
+        this._eventStreams.Update(rawResponse.EventStreams);
         return evaluationResponse;
     }
 
@@ -374,6 +380,7 @@ internal sealed partial class OfrepClient : IOfrepClient
         {
             if (disposing)
             {
+                this._eventStreams.Dispose();
                 this._httpClient.Dispose();
             }
 

@@ -27,6 +27,11 @@ public record OfrepProviderOptions
     public TimeSpan Timeout { get; set; } = OfrepOptions.DefaultTimeout;
 
     /// <summary>
+    /// Gets or sets the inactivity delay for event streams. Overrides the delay in evaluation responses.
+    /// </summary>
+    public TimeSpan? InactivityDelay { get; set; }
+
+    /// <summary>
     /// Optional additional HTTP headers.
     /// </summary>
     public Dictionary<string, string> Headers { get; set; } = new();
